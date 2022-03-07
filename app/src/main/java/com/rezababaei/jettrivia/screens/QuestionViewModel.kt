@@ -13,7 +13,8 @@ import java.lang.Exception
 import javax.inject.Inject
 
 @HiltViewModel
-class QuestionViewModel @Inject constructor(private val repository: QuestionRepository):ViewModel() {
+class QuestionViewModel @Inject constructor(private val repository: QuestionRepository) :
+    ViewModel() {
 
     val data: MutableState<DataOrException<ArrayList<QuestionsItem>,
             Boolean, Exception>> = mutableStateOf(
@@ -23,13 +24,17 @@ class QuestionViewModel @Inject constructor(private val repository: QuestionRepo
         getAllQuestions()
     }
 
-    private fun getAllQuestions(){
+    private fun getAllQuestions() {
         viewModelScope.launch {
-            data.value.loading=true
-            data.value=repository.getAllQuestions()
-            if (data.value.data.toString().isNotEmpty()){
-                data.value.loading=false
+            data.value.loading = true
+            data.value = repository.getAllQuestions()
+            if (data.value.data.toString().isNotEmpty()) {
+                data.value.loading = false
             }
         }
     }
+
+//    fun getQuestionCount(): Int {
+//        return data.value.data?.size ?: 0
+//    }
 }

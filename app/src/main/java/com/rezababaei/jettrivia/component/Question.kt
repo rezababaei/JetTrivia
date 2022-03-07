@@ -39,11 +39,16 @@ import java.lang.Exception
 @Composable
 fun Question(viewModel: QuestionViewModel) {
     var questions = viewModel.data.value.data?.toMutableList()
+    var questionCount=questions?.size?:0
     val questionIndex = remember {
         mutableStateOf(0)
     }
     if (viewModel.data.value.loading == true) {
-        CircularProgressIndicator()
+        Column(verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize()) {
+            CircularProgressIndicator()
+        }
 
         Log.d("loading", "Loading.....")
 
@@ -55,7 +60,7 @@ fun Question(viewModel: QuestionViewModel) {
         }
 
         if (currentQuestion != null) {
-            QuestionDisplay(question = currentQuestion, questionIndex, viewModel) {
+            QuestionDisplay(question = currentQuestion, questionIndex, viewModel,questionCount) {
                 questionIndex.value += 1
             }
         }
@@ -68,6 +73,7 @@ fun QuestionDisplay(
     question: QuestionsItem,
     questionIndex: MutableState<Int>,
     viewModel: QuestionViewModel,
+    questionCount:Int=100,
     onNextClicked: (Int) -> Unit = {},
 ) {
     val choicesState = remember(question) {
@@ -86,6 +92,10 @@ fun QuestionDisplay(
             correctAnswerState.value = choicesState[it] == question.answer
         }
     }
+    val score = remember {
+        mutableStateOf(0)
+    }
+
 
     val pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
 
@@ -96,10 +106,10 @@ fun QuestionDisplay(
         Column(Modifier.padding(12.dp),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start) {
-            
-            if (questionIndex.value>3) ShowProgress(questionIndex.value)
 
-            QuestionTracker(counter = questionIndex.value)
+            if (score.value >= 3) ShowProgress(score.value)
+
+            QuestionTracker(counter = questionIndex.value ,questionCount)
             DrawDottedLine(pathEffect)
 
             Column {
@@ -134,6 +144,11 @@ fun QuestionDisplay(
                         Modifier
                             .clickable {
                                 updateAnswer(index)
+                                if (correctAnswerState.value == true) {
+                                    score.value += 1
+                                } else if (correctAnswerState.value == false) {
+                                    score.value -= 1
+                                }
                             }
                             .fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
 
@@ -261,13 +276,14 @@ fun ShowProgress(score: Int = 22) {
                 backgroundColor = Color.Transparent,
                 disabledBackgroundColor = Color.Transparent
             )) {
-Text(text = (score * 10).toString(), modifier =
-Modifier.clip(shape = RoundedCornerShape(23.dp))
-    .fillMaxWidth()
-    .fillMaxHeight(0.87f)
-    .padding(6.dp),
-color = AppColors.mOffWhite,
-textAlign = TextAlign.Center)
+            Text(text = (score * 10).toString(), modifier =
+            Modifier
+                .clip(shape = RoundedCornerShape(23.dp))
+                .fillMaxWidth()
+                .fillMaxHeight(0.87f)
+                .padding(6.dp),
+                color = AppColors.mOffWhite,
+                textAlign = TextAlign.Center)
         }
 
     }
